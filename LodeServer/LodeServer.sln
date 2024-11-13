@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lode", "Lode\Lode.csproj", "{B068E5D7-F7DB-495A-95C8-82D063AEA2B6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LodeServer", "LodeServer\LodeServer.csproj", "{BA27DA13-9B14-4AD6-91EF-015CA52AD46B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B068E5D7-F7DB-495A-95C8-82D063AEA2B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B068E5D7-F7DB-495A-95C8-82D063AEA2B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B068E5D7-F7DB-495A-95C8-82D063AEA2B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B068E5D7-F7DB-495A-95C8-82D063AEA2B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA27DA13-9B14-4AD6-91EF-015CA52AD46B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA27DA13-9B14-4AD6-91EF-015CA52AD46B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA27DA13-9B14-4AD6-91EF-015CA52AD46B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA27DA13-9B14-4AD6-91EF-015CA52AD46B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {298B5EC7-6286-4F11-9F33-16BA9E01B859}
+		SolutionGuid = {F7046C47-F325-45A7-B891-D8935F4C3A34}
 	EndGlobalSection
 EndGlobal

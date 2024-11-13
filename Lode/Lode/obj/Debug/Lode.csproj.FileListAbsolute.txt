@@ -1,0 +1,9 @@
+C:\Spst\Lode\Lode\Lode\bin\Debug\Lode.exe.config
+C:\Spst\Lode\Lode\Lode\bin\Debug\Lode.exe
+C:\Spst\Lode\Lode\Lode\bin\Debug\Lode.pdb
+C:\Spst\Lode\Lode\Lode\obj\Debug\Lode.csproj.AssemblyReference.cache
+C:\Spst\Lode\Lode\Lode\obj\Debug\Lode.Properties.Resources.resources
+C:\Spst\Lode\Lode\Lode\obj\Debug\Lode.csproj.GenerateResource.cache
+C:\Spst\Lode\Lode\Lode\obj\Debug\Lode.csproj.CoreCompileInputs.cache
+C:\Spst\Lode\Lode\Lode\obj\Debug\Lode.exe
+C:\Spst\Lode\Lode\Lode\obj\Debug\Lode.pdb

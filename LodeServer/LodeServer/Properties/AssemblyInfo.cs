@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // Obecné informace o sestavení se řídí přes následující 
 // sadu atributů. Změnou hodnot těchto atributů se upraví informace
 // přidružené k sestavení.
-[assembly: AssemblyTitle("Lode")]
+[assembly: AssemblyTitle("LodeServer")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Lode")]
+[assembly: AssemblyProduct("LodeServer")]
 [assembly: AssemblyCopyright("Copyright ©  2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Následující GUID se používá pro ID knihovny typů, pokud je tento projekt vystavený pro COM.
-[assembly: Guid("b068e5d7-f7db-495a-95c8-82d063aea2b6")]
+[assembly: Guid("ba27da13-9b14-4ad6-91ef-015ca52ad46b")]
 
 // Informace o verzi sestavení se skládá z těchto čtyř hodnot:
 //
