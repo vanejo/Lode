@@ -52,9 +52,8 @@ namespace LodeServer
             Controls.Add(txtZprava);
 
             labelStatus.Text = "Spuštění serveru";
-            socket_server = new Socket(AddressFamily.InterNetwork, SocketType.Stream,
-                                       ProtocolType.Tcp);
-            socket_server.Bind(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 5555));
+            socket_server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            socket_server.Bind(new IPEndPoint(IPAddress.Any, 5555));
             socket_server.Listen(1);
             labelStatus.Text = "Server spuštěn.";
 

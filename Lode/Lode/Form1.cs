@@ -43,7 +43,7 @@ namespace Lode
                                       ProtocolType.Tcp);
             try
             {
-                clientSocket.Connect(IPAddress.Parse("127.0.0.1"), 5555);
+                clientSocket.Connect(IPAddress.Parse("172.20.10.2"), 5555); //napsat local adresu
             }
             catch (Exception ex)
             {
