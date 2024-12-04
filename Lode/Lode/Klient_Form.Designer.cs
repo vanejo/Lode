@@ -1,6 +1,6 @@
-﻿namespace Lode
+﻿namespace LodeClient
 {
-    partial class Form1
+    partial class Klient_Form
     {
         /// <summary>
         /// Vyžaduje se proměnná návrháře.

@@ -1,6 +1,6 @@
 ﻿namespace LodeServer
 {
-    partial class Form1
+    partial class ServerForm
     {
         /// <summary>
         /// Vyžaduje se proměnná návrháře.

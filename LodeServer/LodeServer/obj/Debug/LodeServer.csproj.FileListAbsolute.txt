@@ -2,9 +2,9 @@ C:\Spst\Lode\LodeServer\LodeServer\bin\Debug\LodeServer.exe.config
 C:\Spst\Lode\LodeServer\LodeServer\bin\Debug\LodeServer.exe
 C:\Spst\Lode\LodeServer\LodeServer\bin\Debug\LodeServer.pdb
 C:\Spst\Lode\LodeServer\LodeServer\obj\Debug\LodeServer.csproj.AssemblyReference.cache
-C:\Spst\Lode\LodeServer\LodeServer\obj\Debug\LodeServer.Form1.resources
 C:\Spst\Lode\LodeServer\LodeServer\obj\Debug\LodeServer.Properties.Resources.resources
 C:\Spst\Lode\LodeServer\LodeServer\obj\Debug\LodeServer.csproj.GenerateResource.cache
 C:\Spst\Lode\LodeServer\LodeServer\obj\Debug\LodeServer.csproj.CoreCompileInputs.cache
 C:\Spst\Lode\LodeServer\LodeServer\obj\Debug\LodeServer.exe
 C:\Spst\Lode\LodeServer\LodeServer\obj\Debug\LodeServer.pdb
+C:\Spst\Lode\LodeServer\LodeServer\obj\Debug\LodeServer.ServerForm.resources
