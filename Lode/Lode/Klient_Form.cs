@@ -11,7 +11,8 @@ namespace LodeClient
     public partial class Klient_Form : Form
     {
         static Socket clientSocket;
-        Gameboard gameBoard = new Gameboard();
+        Gameboard playerBoard = new Gameboard();
+        Gameboard opponentBoard = new Gameboard();
         TextBox txtZprava = new TextBox();
         Button btnOdeslat = new Button();
         Label labelResponse = new Label();
@@ -25,10 +26,8 @@ namespace LodeClient
 
         private void InitializeGameComponents()
         {
-            // Nastavení velikosti formuláře
             this.Size = new Size(800, 600);
 
-            // Přidání TextBoxu, tlačítka a labelu
             txtZprava.Left = 20;
             txtZprava.Top = 20;
             txtZprava.Width = 200;
@@ -66,7 +65,8 @@ namespace LodeClient
         private void Klient_Form_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            gameBoard.RenderBoard(g, 20, 100);
+            playerBoard.RenderBoard(g, 20, 100);
+            opponentBoard.RenderBoard(g, 420, 100);
         }
 
         private void BtnOdeslat_Click(object sender, EventArgs e)
@@ -75,7 +75,6 @@ namespace LodeClient
             byte[] data = Encoding.Default.GetBytes(zprava);
 
             clientSocket.Send(data);
-            
         }
 
         private void CheckForResponse(object sender, EventArgs e)
@@ -102,29 +101,24 @@ namespace LodeClient
                 int row = int.Parse(casti[1]);
                 int col = int.Parse(casti[2]);
 
-                if (command == "Hit")
+                switch (command)
                 {
-                    gameBoard.MarkHit(row, col);
+                    case "Hit":
+                        opponentBoard.MarkHit(row, col);
+                        break;
+                    case "Miss":
+                        opponentBoard.MarkMiss(row, col);
+                        break;
+                    case "PlaceShip":
+                        playerBoard.PlaceShip(row, col);
+                        break;
+                    case "Attack":
+                        bool hit = opponentBoard.CheckHit(row, col);
+                        string response = hit ? $"Hit,{row},{col}" : $"Miss,{row},{col}";
+                        byte[] responseBytes = Encoding.Default.GetBytes(response);
+                        clientSocket.Send(responseBytes);
+                        break;
                 }
-                
-                else if (command == "Miss")
-                {
-                    gameBoard.MarkMiss(row, col);
-                }
-                else if (command == "PlaceShip")
-                {
-                    gameBoard.PlaceShip(row, col);
-                    
-                }
-
-                else if (command == "Attack")
-                {
-                    bool hit = gameBoard.CheckHit(row, col);
-                    string response = hit ? $"Hit,{row},{col}" : $"Miss,{row},{col}";
-                    byte[] responseBytes = Encoding.Default.GetBytes(response);
-                    clientSocket.Send(responseBytes);
-                }
-
             }
             this.Invalidate();
         }

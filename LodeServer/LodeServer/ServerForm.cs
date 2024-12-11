@@ -17,7 +17,9 @@ namespace LodeServer
         Timer casovac = new Timer();
         TextBox txtZprava = new TextBox();
         Button btnOdeslat = new Button();
-        Gameboard gameBoard = new Gameboard();
+        Gameboard playerBoard = new Gameboard();
+        Gameboard opponentBoard = new Gameboard();
+
         public ServerForm()
         {
             InitializeComponent();
@@ -28,14 +30,16 @@ namespace LodeServer
         {
             this.Size = new Size(800, 600);
 
-            // Přidání ovládacích prvků
             labelStatus.Top = 20;
+            labelStatus.Left = 20;
             Controls.Add(labelStatus);
 
             labelData.Top = 50;
+            labelData.Left = 20;
             Controls.Add(labelData);
 
             txtZprava.Top = 80;
+            txtZprava.Left = 20;
             Controls.Add(txtZprava);
 
             btnOdeslat.Text = "Send";
@@ -43,7 +47,6 @@ namespace LodeServer
             btnOdeslat.Click += new EventHandler(BtnOdeslat_Click);
             Controls.Add(btnOdeslat);
 
-            // Spuštění serveru
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             serverSocket.Bind(new IPEndPoint(IPAddress.Any, 5555));
             serverSocket.Listen(1);
@@ -51,20 +54,19 @@ namespace LodeServer
             clientSocket = serverSocket.Accept();
             labelStatus.Text = "Klient připojen";
 
-            // Časovač pro příjem dat
             casovac.Interval = 100;
             casovac.Tick += ZkontrolovatData;
             casovac.Start();
 
-            // Povolit přepisování plochy (malování herní plochy)
             this.Paint += new PaintEventHandler(ServerForm_Paint);
         }
 
         private void ServerForm_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            // Kreslení herní plochy
-            gameBoard.RenderBoard(g, 20, 150);
+            
+            playerBoard.RenderBoard(g, 20, 150);
+            opponentBoard.RenderBoard(g, 420, 150);
         }
 
         private void ZkontrolovatData(object sender, EventArgs e)
@@ -98,28 +100,25 @@ namespace LodeServer
                 string command = casti[0];
                 int row = int.Parse(casti[1]);
                 int col = int.Parse(casti[2]);
-                if (command == "PlaceShip")
-                {
-                    gameBoard.PlaceShip(row, col);
-                    
-                }
 
-                else if (command == "Attack")
+                switch (command)
                 {
-                    bool hit = gameBoard.CheckHit(row, col);
-                    string response = hit ? $"Hit,{row},{col}" : $"Miss,{row},{col}";
-                    byte[] responseBytes = Encoding.Default.GetBytes(response);
-                    clientSocket.Send(responseBytes);
+                    case "PlaceShip":
+                        playerBoard.PlaceShip(row, col);
+                        break;
+                    case "Attack":
+                        bool hit = playerBoard.CheckHit(row, col);
+                        string response = hit ? $"Hit,{row},{col}" : $"Miss,{row},{col}";
+                        byte[] responseBytes = Encoding.Default.GetBytes(response);
+                        clientSocket.Send(responseBytes);
+                        break;
+                    case "Hit":
+                        opponentBoard.MarkHit(row, col);
+                        break;
+                    case "Miss":
+                        opponentBoard.MarkMiss(row, col);
+                        break;
                 }
-                else if (command == "Hit")
-                {
-                    gameBoard.MarkHit(row, col);
-                }
-                else if (command == "Miss")
-                {
-                    gameBoard.MarkMiss(row, col);
-                }
-                
             }
             this.Invalidate();
         }
