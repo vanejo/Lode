@@ -17,7 +17,10 @@ namespace Lode
         }
         public void PlaceShip(int row, int col)
         {
-            board[row, col] = 1;
+            if (board[row, col] == 0)
+            {
+                board[row, col] = 1;
+            }
         }
         public bool CheckHit(int row, int col)
         {
@@ -43,20 +46,12 @@ namespace Lode
                 for (int col = 0; col < GridSize; col++)
                 {
                     Brush brush = Brushes.Blue;
+                    if (board[row, col] == 1) brush = Brushes.Gray;
+                    else if (board[row, col] == 2) brush = Brushes.Red;
+                    else if (board[row, col] == 3) brush = Brushes.White;
 
-                    if (board[row, col] == 1)
-                    { 
-                        brush = Brushes.Gray;
-                    }
-                    else if (board[row, col] == 2)
-                    {
-                        brush = Brushes.Red;
-                    }
-                    else if (board[row, col] == 3)
-                    {
-                        brush = Brushes.White;
-                    }
                     g.FillRectangle(brush, offsetX + col * 30, offsetY + row * 30, 30, 30);
+                    g.DrawRectangle(Pens.Black, offsetX + col * 30, offsetY + row * 30, 30, 30); // Mřížka
                 }
             }
         }

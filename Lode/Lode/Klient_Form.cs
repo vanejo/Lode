@@ -1,22 +1,20 @@
 ﻿using Lode;
+using System;
 using System.Drawing;
 using System.Net.Sockets;
-using System.Net;
 using System.Text;
 using System.Windows.Forms;
-using System;
 
 namespace LodeClient
 {
     public partial class Klient_Form : Form
     {
         static Socket clientSocket;
+        RadioButton rbPlaceShip = new RadioButton();
+        RadioButton rbAttack = new RadioButton();
+        Label labelResponse = new Label();
         Gameboard playerBoard = new Gameboard();
         Gameboard opponentBoard = new Gameboard();
-        TextBox txtZprava = new TextBox();
-        Button btnOdeslat = new Button();
-        Label labelResponse = new Label();
-        Timer responseTimer = new Timer();
 
         public Klient_Form()
         {
@@ -28,53 +26,88 @@ namespace LodeClient
         {
             this.Size = new Size(800, 600);
 
-            txtZprava.Left = 20;
-            txtZprava.Top = 20;
-            txtZprava.Width = 200;
-            Controls.Add(txtZprava);
-
-            btnOdeslat.Left = 240;
-            btnOdeslat.Top = 20;
-            btnOdeslat.Text = "Odeslat";
-            btnOdeslat.Click += new EventHandler(BtnOdeslat_Click);
-            Controls.Add(btnOdeslat);
-
+            // Response label
             labelResponse.Left = 20;
-            labelResponse.Top = 60;
+            labelResponse.Top = 20;
             labelResponse.Width = 300;
             Controls.Add(labelResponse);
 
+            // Place Ship radio button
+            rbPlaceShip.Text = "Place Ship";
+            rbPlaceShip.Left = 20;
+            rbPlaceShip.Top = 50;
+            rbPlaceShip.Checked = true; // Default option
+            Controls.Add(rbPlaceShip);
+
+            // Attack radio button
+            rbAttack.Text = "Attack";
+            rbAttack.Left = 20;
+            rbAttack.Top = 80;
+            Controls.Add(rbAttack);
+
+            // Initialize socket connection
             clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
             {
-                clientSocket.Connect(IPAddress.Parse("127.0.0.1"), 5555);
+                clientSocket.Connect("127.0.0.1", 5555);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Spojení se nezdařilo: " + ex.Message);
+                MessageBox.Show("Connection failed: " + ex.Message);
                 return;
             }
 
+            this.Paint += new PaintEventHandler(Klient_Form_Paint);
+            this.MouseClick += new MouseEventHandler(Klient_Form_MouseClick);
+
+            Timer responseTimer = new Timer();
             responseTimer.Interval = 100;
             responseTimer.Tick += CheckForResponse;
             responseTimer.Start();
-
-            this.Paint += new PaintEventHandler(Klient_Form_Paint);
         }
 
         private void Klient_Form_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            playerBoard.RenderBoard(g, 20, 100);
-            opponentBoard.RenderBoard(g, 420, 100);
+
+            // Render player board
+            playerBoard.RenderBoard(g, 20, 150);
+
+            // Render opponent board
+            opponentBoard.RenderBoard(g, 420, 150);
         }
 
-        private void BtnOdeslat_Click(object sender, EventArgs e)
+        private void Klient_Form_MouseClick(object sender, MouseEventArgs e)
         {
-            string zprava = txtZprava.Text;
-            byte[] data = Encoding.Default.GetBytes(zprava);
+            int boardX = e.X;
+            int boardY = e.Y;
+            int row, col;
 
-            clientSocket.Send(data);
+            // Kliknutí na desku hráče
+            if (boardX >= 20 && boardX < 20 + 10 * 30 && boardY >= 150 && boardY < 150 + 10 * 30)
+            {
+                row = (boardY - 150) / 30;
+                col = (boardX - 20) / 30;
+
+                if (rbPlaceShip.Checked)
+                {
+                    playerBoard.PlaceShip(row, col); // Správně
+                    SendMessageToServer($"PlaceShip,{row},{col}");
+                }
+            }
+            // Kliknutí na desku protihráče
+            else if (boardX >= 420 && boardX < 420 + 10 * 30 && boardY >= 150 && boardY < 150 + 10 * 30)
+            {
+                row = (boardY - 150) / 30;
+                col = (boardX - 420) / 30;
+
+                if (rbAttack.Checked)
+                {
+                    SendMessageToServer($"Attack,{row},{col}"); // Správně odesílá útok
+                }
+            }
+
+            this.Invalidate(); // Redraw the form
         }
 
         private void CheckForResponse(object sender, EventArgs e)
@@ -92,35 +125,43 @@ namespace LodeClient
             }
         }
 
-        private void ProcessGameData(string data)
+        private void ProcessGameData(string message)
         {
-            string[] casti = data.Split(',');
-            if (casti.Length == 3)
+            string[] parts = message.Split(',');
+            if (parts.Length == 3)
             {
-                string command = casti[0];
-                int row = int.Parse(casti[1]);
-                int col = int.Parse(casti[2]);
+                string command = parts[0];
+                int row = int.Parse(parts[1]);
+                int col = int.Parse(parts[2]);
 
                 switch (command)
                 {
-                    case "Hit":
-                        opponentBoard.MarkHit(row, col);
-                        break;
-                    case "Miss":
-                        opponentBoard.MarkMiss(row, col);
-                        break;
                     case "PlaceShip":
-                        playerBoard.PlaceShip(row, col);
+                        playerBoard.PlaceShip(row, col); // OK
                         break;
+
                     case "Attack":
-                        bool hit = opponentBoard.CheckHit(row, col);
+                        bool hit = opponentBoard.CheckHit(row, col); // Zde je správné volání
                         string response = hit ? $"Hit,{row},{col}" : $"Miss,{row},{col}";
-                        byte[] responseBytes = Encoding.Default.GetBytes(response);
-                        clientSocket.Send(responseBytes);
+                        SendMessageToServer(response); // Správně posílá výsledek
+                        break; 
+
+                    case "Hit":
+                        opponentBoard.MarkHit(row, col); // Zde může být problém
+                        break;
+
+                    case "Miss":
+                        opponentBoard.MarkMiss(row, col); // Zde může být problém
                         break;
                 }
             }
-            this.Invalidate();
+            this.Invalidate(); // Redraw the boards
+        }
+
+        private void SendMessageToServer(string message)
+        {
+            byte[] data = Encoding.Default.GetBytes(message);
+            clientSocket.Send(data);
         }
     }
 }
