@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using Lode;
 
 namespace LodeServer
 {
@@ -16,8 +17,8 @@ namespace LodeServer
         RadioButton rbAttack = new RadioButton();
         Label labelStatus = new Label();
         Label labelData = new Label();
-        Gameboard playerBoard = new Gameboard();
-        Gameboard opponentBoard = new Gameboard();
+        Gameboard playerBoard = new Gameboard();   // Server's own board
+        Gameboard opponentBoard = new Gameboard(); // Displays hits/misses on client side
 
         public ServerForm()
         {
@@ -57,6 +58,8 @@ namespace LodeServer
             serverSocket.Bind(new IPEndPoint(IPAddress.Any, 5555));
             serverSocket.Listen(1);
             labelStatus.Text = "Waiting for connection...";
+
+            // Accept a single client connection
             clientSocket = serverSocket.Accept();
             labelStatus.Text = "Client connected";
 
@@ -73,13 +76,14 @@ namespace LodeServer
         {
             Graphics g = e.Graphics;
 
-            // Render player board
+            // Render server's (player) board on the left
             playerBoard.RenderBoard(g, 20, 150);
 
-            // Render opponent board
+            // Render opponent's board on the right
             opponentBoard.RenderBoard(g, 420, 150);
         }
 
+        // Process data received from the client
         private void ProcessGameData(string message)
         {
             string[] parts = message.Split(',');
@@ -92,25 +96,23 @@ namespace LodeServer
                 switch (command)
                 {
                     case "PlaceShip":
-                        playerBoard.PlaceShip(row, col); // Ukládání lodí na hráčovu desku
                         break;
 
                     case "Attack":
-                        bool hit = opponentBoard.CheckHit(row, col); // Zásah na soupeřovu desku
+                        bool hit = playerBoard.CheckHit(row, col);
                         string response = hit ? $"Hit,{row},{col}" : $"Miss,{row},{col}";
-                        SendMessageToClient(response); // Odeslání výsledku útoku klientovi
+                        SendMessageToClient(response);
                         break;
 
                     case "Hit":
-                        opponentBoard.MarkHit(row, col); // Zaznamenání zásahu na hráčovu desku
+                        opponentBoard.MarkHit(row, col);
                         break;
-
                     case "Miss":
-                        opponentBoard.MarkMiss(row, col); // Zaznamenání zásahu mimo hráčovu desku
+                        opponentBoard.MarkMiss(row, col);
                         break;
                 }
             }
-            this.Invalidate(); // Redraw the boards
+            this.Invalidate(); 
         }
 
         private void ServerForm_MouseClick(object sender, MouseEventArgs e)
@@ -119,18 +121,16 @@ namespace LodeServer
             int boardY = e.Y;
             int row, col;
 
-            // Kliknutí na desku hráče
+            
             if (boardX >= 20 && boardX < 20 + 10 * 30 && boardY >= 150 && boardY < 150 + 10 * 30)
             {
                 row = (boardY - 150) / 30;
                 col = (boardX - 20) / 30;
-
                 if (rbPlaceShip.Checked)
                 {
-                    playerBoard.PlaceShip(row, col); // Správně
+                    playerBoard.PlaceShip(row, col);
                 }
             }
-            // Kliknutí na desku protihráče
             else if (boardX >= 420 && boardX < 420 + 10 * 30 && boardY >= 150 && boardY < 150 + 10 * 30)
             {
                 row = (boardY - 150) / 30;
@@ -138,13 +138,11 @@ namespace LodeServer
 
                 if (rbAttack.Checked)
                 {
-                    bool hit = opponentBoard.CheckHit(row, col); // Zde je chyba
-                    string response = hit ? $"Hit,{row},{col}" : $"Miss,{row},{col}";
-                    SendMessageToClient(response);
+                    SendMessageToClient($"Attack,{row},{col}");
                 }
             }
 
-            this.Invalidate(); // Redraw the form
+            this.Invalidate(); 
         }
 
         private void ReceiveData()
@@ -160,9 +158,10 @@ namespace LodeServer
                         if (bytesRead > 0)
                         {
                             string message = Encoding.Default.GetString(buffer, 0, bytesRead);
-                            Invoke(new Action(() => ProcessGameData(message))); // Zpracování na hlavním vlákně
+                            Invoke(new Action(() => ProcessGameData(message)));
                         }
                     }
+                    Thread.Sleep(50); 
                 }
                 catch (Exception ex)
                 {
