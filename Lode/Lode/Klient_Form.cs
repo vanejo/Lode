@@ -23,6 +23,9 @@ namespace LodeClient
         private Image hitImage;
         private Image missImage;
 
+        private NumericUpDown nudShipSize = new NumericUpDown();
+        private ComboBox cbOrientation = new ComboBox();
+
         public Klient_Form()
         {
             InitializeComponent();
@@ -58,16 +61,31 @@ namespace LodeClient
             rbAttack.Top = 80;
             Controls.Add(rbAttack);
 
+            // Ship size numeric up-down
+            nudShipSize.Minimum = 1;
+            nudShipSize.Maximum = 5;
+            nudShipSize.Value = 3;
+            nudShipSize.Top = 110;
+            nudShipSize.Left = 20;
+            Controls.Add(nudShipSize);
+
+            // Orientation combobox
+            cbOrientation.Items.AddRange(new string[] { "Horizontal", "Vertical" });
+            cbOrientation.SelectedIndex = 0;
+            cbOrientation.Top = 140;
+            cbOrientation.Left = 20;
+            Controls.Add(cbOrientation);
+
             // Player board label
             labelPlayerBoard.Text = "Your Board";
             labelPlayerBoard.Left = 20;
-            labelPlayerBoard.Top = 120;
+            labelPlayerBoard.Top = 170;
             Controls.Add(labelPlayerBoard);
 
             // Opponent board label
             labelOpponentBoard.Text = "Opponent's Board";
             labelOpponentBoard.Left = 420;
-            labelOpponentBoard.Top = 120;
+            labelOpponentBoard.Top = 170;
             Controls.Add(labelOpponentBoard);
 
             // Socket setup
@@ -97,10 +115,10 @@ namespace LodeClient
             Graphics g = e.Graphics;
 
             // Render client's (player) board on the left
-            playerBoard.RenderBoard(g, 20, 150, waterImage, shipImage, hitImage, missImage);
+            playerBoard.RenderBoard(g, 20, 200, waterImage, shipImage, hitImage, missImage);
 
             // Render opponent's board on the right
-            opponentBoard.RenderBoard(g, 420, 150, waterImage, shipImage, hitImage, missImage);
+            opponentBoard.RenderBoard(g, 420, 200, waterImage, shipImage, hitImage, missImage);
         }
 
         private void Klient_Form_MouseClick(object sender, MouseEventArgs e)
@@ -109,20 +127,22 @@ namespace LodeClient
             int boardY = e.Y;
             int row, col;
 
-            if (boardX >= 20 && boardX < 20 + 10 * 30 && boardY >= 150 && boardY < 150 + 10 * 30)
+            if (boardX >= 20 && boardX < 20 + 10 * 30 && boardY >= 200 && boardY < 200 + 10 * 30)
             {
-                row = (boardY - 150) / 30;
+                row = (boardY - 200) / 30;
                 col = (boardX - 20) / 30;
 
                 if (rbPlaceShip.Checked)
                 {
-                    playerBoard.PlaceShip(row, col, 3, true); // Place a ship of size 3
-                    SendMessageToServer($"PlaceShip,{row},{col}");
+                    int shipSize = (int)nudShipSize.Value;
+                    bool isHorizontal = cbOrientation.SelectedItem.ToString() == "Horizontal";
+                    playerBoard.PlaceShip(row, col, shipSize, isHorizontal); // Place a ship of variable size
+                    SendMessageToServer($"PlaceShip,{row},{col},{shipSize},{isHorizontal}");
                 }
             }
-            else if (boardX >= 420 && boardX < 420 + 10 * 30 && boardY >= 150 && boardY < 150 + 10 * 30)
+            else if (boardX >= 420 && boardX < 420 + 10 * 30 && boardY >= 200 && boardY < 200 + 10 * 30)
             {
-                row = (boardY - 150) / 30;
+                row = (boardY - 200) / 30;
                 col = (boardX - 420) / 30;
 
                 if (rbAttack.Checked)
@@ -137,7 +157,7 @@ namespace LodeClient
         private void ProcessGameData(string message)
         {
             string[] parts = message.Split(',');
-            if (parts.Length == 3)
+            if (parts.Length >= 3)
             {
                 string command = parts[0];
                 int row = int.Parse(parts[1]);
@@ -157,7 +177,6 @@ namespace LodeClient
                     case "Hit":
                         opponentBoard.MarkHit(row, col);
                         break;
-
                     case "Miss":
                         opponentBoard.MarkMiss(row, col);
                         break;

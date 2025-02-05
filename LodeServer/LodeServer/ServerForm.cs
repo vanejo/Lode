@@ -27,6 +27,9 @@ namespace LodeServer
         private Image hitImage;
         private Image missImage;
 
+        private NumericUpDown nudShipSize = new NumericUpDown();
+        private ComboBox cbOrientation = new ComboBox();
+
         public ServerForm()
         {
             InitializeComponent();
@@ -66,16 +69,31 @@ namespace LodeServer
             rbAttack.Left = 20;
             Controls.Add(rbAttack);
 
+            // Ship size numeric up-down
+            nudShipSize.Minimum = 1;
+            nudShipSize.Maximum = 5;
+            nudShipSize.Value = 3;
+            nudShipSize.Top = 140;
+            nudShipSize.Left = 20;
+            Controls.Add(nudShipSize);
+
+            // Orientation combobox
+            cbOrientation.Items.AddRange(new string[] { "Horizontal", "Vertical" });
+            cbOrientation.SelectedIndex = 0;
+            cbOrientation.Top = 170;
+            cbOrientation.Left = 20;
+            Controls.Add(cbOrientation);
+
             // Player board label
             labelPlayerBoard.Text = "Your Board";
             labelPlayerBoard.Left = 20;
-            labelPlayerBoard.Top = 120;
+            labelPlayerBoard.Top = 200;
             Controls.Add(labelPlayerBoard);
 
             // Opponent board label
             labelOpponentBoard.Text = "Opponent's Board";
             labelOpponentBoard.Left = 420;
-            labelOpponentBoard.Top = 120;
+            labelOpponentBoard.Top = 200;
             Controls.Add(labelOpponentBoard);
 
             // Socket setup
@@ -102,10 +120,10 @@ namespace LodeServer
             Graphics g = e.Graphics;
 
             // Render server's (player) board on the left
-            playerBoard.RenderBoard(g, 20, 150, waterImage, shipImage, hitImage, missImage);
+            playerBoard.RenderBoard(g, 20, 220, waterImage, shipImage, hitImage, missImage);
 
             // Render opponent's board on the right
-            opponentBoard.RenderBoard(g, 420, 150, waterImage, shipImage, hitImage, missImage);
+            opponentBoard.RenderBoard(g, 420, 220, waterImage, shipImage, hitImage, missImage);
         }
 
         private void ServerForm_MouseClick(object sender, MouseEventArgs e)
@@ -114,18 +132,20 @@ namespace LodeServer
             int boardY = e.Y;
             int row, col;
 
-            if (boardX >= 20 && boardX < 20 + 10 * 30 && boardY >= 150 && boardY < 150 + 10 * 30)
+            if (boardX >= 20 && boardX < 20 + 10 * 30 && boardY >= 220 && boardY < 220 + 10 * 30)
             {
-                row = (boardY - 150) / 30;
+                row = (boardY - 220) / 30;
                 col = (boardX - 20) / 30;
                 if (rbPlaceShip.Checked)
                 {
-                    playerBoard.PlaceShip(row, col, 3, true); // Place a ship of size 3
+                    int shipSize = (int)nudShipSize.Value;
+                    bool isHorizontal = cbOrientation.SelectedItem.ToString() == "Horizontal";
+                    playerBoard.PlaceShip(row, col, shipSize, isHorizontal); // Place a ship of variable size
                 }
             }
-            else if (boardX >= 420 && boardX < 420 + 10 * 30 && boardY >= 150 && boardY < 150 + 10 * 30)
+            else if (boardX >= 420 && boardX < 420 + 10 * 30 && boardY >= 220 && boardY < 220 + 10 * 30)
             {
-                row = (boardY - 150) / 30;
+                row = (boardY - 220) / 30;
                 col = (boardX - 420) / 30;
 
                 if (rbAttack.Checked)
