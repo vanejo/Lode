@@ -13,8 +13,15 @@ namespace LodeClient
         RadioButton rbPlaceShip = new RadioButton();
         RadioButton rbAttack = new RadioButton();
         Label labelResponse = new Label();
+        Label labelPlayerBoard = new Label();
+        Label labelOpponentBoard = new Label();
         Gameboard playerBoard = new Gameboard();   // Client's own board
         Gameboard opponentBoard = new Gameboard(); // Displays hits/misses from the server
+
+        private Image waterImage;
+        private Image shipImage;
+        private Image hitImage;
+        private Image missImage;
 
         public Klient_Form()
         {
@@ -26,26 +33,44 @@ namespace LodeClient
         {
             this.Size = new Size(800, 600);
 
-           
+            // Load images
+            waterImage = Image.FromFile(@"..\..\water.png");
+            shipImage = Image.FromFile(@"..\..\ship.png");
+            hitImage = Image.FromFile(@"..\..\hit.png");
+            missImage = Image.FromFile(@"..\..\miss.png");
+
+            // Response label
             labelResponse.Left = 20;
             labelResponse.Top = 20;
             labelResponse.Width = 300;
             Controls.Add(labelResponse);
 
-           
+            // Place Ship radio button
             rbPlaceShip.Text = "Place Ship";
             rbPlaceShip.Left = 20;
             rbPlaceShip.Top = 50;
-            rbPlaceShip.Checked = true; 
+            rbPlaceShip.Checked = true;
             Controls.Add(rbPlaceShip);
 
-            
+            // Attack radio button
             rbAttack.Text = "Attack";
             rbAttack.Left = 20;
             rbAttack.Top = 80;
             Controls.Add(rbAttack);
 
-         
+            // Player board label
+            labelPlayerBoard.Text = "Your Board";
+            labelPlayerBoard.Left = 20;
+            labelPlayerBoard.Top = 120;
+            Controls.Add(labelPlayerBoard);
+
+            // Opponent board label
+            labelOpponentBoard.Text = "Opponent's Board";
+            labelOpponentBoard.Left = 420;
+            labelOpponentBoard.Top = 120;
+            Controls.Add(labelOpponentBoard);
+
+            // Socket setup
             clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
             {
@@ -60,7 +85,7 @@ namespace LodeClient
             this.Paint += new PaintEventHandler(Klient_Form_Paint);
             this.MouseClick += new MouseEventHandler(Klient_Form_MouseClick);
 
-            
+            // Timer to check for server responses
             Timer responseTimer = new Timer();
             responseTimer.Interval = 100;
             responseTimer.Tick += CheckForResponse;
@@ -71,10 +96,11 @@ namespace LodeClient
         {
             Graphics g = e.Graphics;
 
-            
-            playerBoard.RenderBoard(g, 20, 150);
+            // Render client's (player) board on the left
+            playerBoard.RenderBoard(g, 20, 150, waterImage, shipImage, hitImage, missImage);
 
-            opponentBoard.RenderBoard(g, 420, 150);
+            // Render opponent's board on the right
+            opponentBoard.RenderBoard(g, 420, 150, waterImage, shipImage, hitImage, missImage);
         }
 
         private void Klient_Form_MouseClick(object sender, MouseEventArgs e)
@@ -90,7 +116,7 @@ namespace LodeClient
 
                 if (rbPlaceShip.Checked)
                 {
-                    playerBoard.PlaceShip(row, col);
+                    playerBoard.PlaceShip(row, col, 3, true); // Place a ship of size 3
                     SendMessageToServer($"PlaceShip,{row},{col}");
                 }
             }
@@ -105,7 +131,7 @@ namespace LodeClient
                 }
             }
 
-            this.Invalidate(); 
+            this.Invalidate();
         }
 
         private void ProcessGameData(string message)
@@ -120,9 +146,8 @@ namespace LodeClient
                 switch (command)
                 {
                     case "PlaceShip":
-                        
                         break;
-                        
+
                     case "Attack":
                         bool hit = playerBoard.CheckHit(row, col);
                         string response = hit ? $"Hit,{row},{col}" : $"Miss,{row},{col}";
@@ -138,7 +163,7 @@ namespace LodeClient
                         break;
                 }
             }
-            this.Invalidate(); 
+            this.Invalidate();
         }
 
         private void CheckForResponse(object sender, EventArgs e)

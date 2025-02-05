@@ -18,11 +18,27 @@ namespace Lode
             board = new int[GridSize, GridSize];
         }
 
-        public void PlaceShip(int row, int col)
+        public void PlaceShip(int row, int col, int shipSize, bool isHorizontal)
         {
-            if (board[row, col] == 0)
+            if (isHorizontal)
             {
-                board[row, col] = 1;
+                for (int i = 0; i < shipSize; i++)
+                {
+                    if (col + i < GridSize && board[row, col + i] == 0)
+                    {
+                        board[row, col + i] = 1;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < shipSize; i++)
+                {
+                    if (row + i < GridSize && board[row + i, col] == 0)
+                    {
+                        board[row + i, col] = 1;
+                    }
+                }
             }
         }
 
@@ -46,18 +62,18 @@ namespace Lode
             board[row, col] = 3;
         }
 
-        public void RenderBoard(Graphics g, int offsetX, int offsetY)
+        public void RenderBoard(Graphics g, int offsetX, int offsetY, Image waterImage, Image shipImage, Image hitImage, Image missImage)
         {
             for (int row = 0; row < GridSize; row++)
             {
                 for (int col = 0; col < GridSize; col++)
                 {
-                    Brush brush = Brushes.Blue; // Default (water)
-                    if (board[row, col] == 1) brush = Brushes.Gray;   // Ship
-                    else if (board[row, col] == 2) brush = Brushes.Red;   // Hit
-                    else if (board[row, col] == 3) brush = Brushes.White; // Miss
+                    Image cellImage = waterImage; // Default (water)
+                    if (board[row, col] == 1) cellImage = shipImage;   // Ship
+                    else if (board[row, col] == 2) cellImage = hitImage;   // Hit
+                    else if (board[row, col] == 3) cellImage = missImage; // Miss
 
-                    g.FillRectangle(brush, offsetX + col * 30, offsetY + row * 30, 30, 30);
+                    g.DrawImage(cellImage, offsetX + col * 30, offsetY + row * 30, 30, 30);
                     g.DrawRectangle(Pens.Black, offsetX + col * 30, offsetY + row * 30, 30, 30);
                 }
             }
