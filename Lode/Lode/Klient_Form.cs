@@ -15,8 +15,10 @@ namespace LodeClient
         Label labelResponse = new Label();
         Label labelPlayerBoard = new Label();
         Label labelOpponentBoard = new Label();
-        Gameboard playerBoard = new Gameboard();   // Client's own board
-        Gameboard opponentBoard = new Gameboard(); // Displays hits/misses from the server
+        // Client's own board (holds client's ships)
+        Gameboard playerBoard = new Gameboard();
+        // Displays results of client's attacks
+        Gameboard opponentBoard = new Gameboard();
 
         private Image waterImage;
         private Image shipImage;
@@ -25,6 +27,13 @@ namespace LodeClient
 
         private NumericUpDown nudShipSize = new NumericUpDown();
         private ComboBox cbOrientation = new ComboBox();
+
+        // Constants for board drawing
+        const int cellSize = 30;
+        const int playerBoardOffsetX = 20;
+        const int playerBoardOffsetY = 200;
+        const int opponentBoardOffsetX = 420;
+        const int opponentBoardOffsetY = 200;
 
         public Klient_Form()
         {
@@ -114,11 +123,11 @@ namespace LodeClient
         {
             Graphics g = e.Graphics;
 
-            // Render client's (player) board on the left
-            playerBoard.RenderBoard(g, 20, 200, waterImage, shipImage, hitImage, missImage);
+            // Render client's board on the left
+            playerBoard.RenderBoard(g, playerBoardOffsetX, playerBoardOffsetY, waterImage, shipImage, hitImage, missImage);
 
             // Render opponent's board on the right
-            opponentBoard.RenderBoard(g, 420, 200, waterImage, shipImage, hitImage, missImage);
+            opponentBoard.RenderBoard(g, opponentBoardOffsetX, opponentBoardOffsetY, waterImage, shipImage, hitImage, missImage);
         }
 
         private void Klient_Form_MouseClick(object sender, MouseEventArgs e)
@@ -127,31 +136,40 @@ namespace LodeClient
             int boardY = e.Y;
             int row, col;
 
-            if (boardX >= 20 && boardX < 20 + 10 * 30 && boardY >= 200 && boardY < 200 + 10 * 30)
+            // Left side (player board) is used for placing ships
+            if (boardX >= playerBoardOffsetX && boardX < playerBoardOffsetX + 10 * cellSize &&
+                boardY >= playerBoardOffsetY && boardY < playerBoardOffsetY + 10 * cellSize)
             {
-                row = (boardY - 200) / 30;
-                col = (boardX - 20) / 30;
+                row = (boardY - playerBoardOffsetY) / cellSize;
+                col = (boardX - playerBoardOffsetX) / cellSize;
 
                 if (rbPlaceShip.Checked)
                 {
                     int shipSize = (int)nudShipSize.Value;
                     bool isHorizontal = cbOrientation.SelectedItem.ToString() == "Horizontal";
-                    playerBoard.PlaceShip(row, col, shipSize, isHorizontal); // Place a ship of variable size
+                    playerBoard.PlaceShip(row, col, shipSize, isHorizontal);
+                    // For multiple cells update each cell
+                    for (int i = 0; i < shipSize; i++)
+                    {
+                        int cellCol = isHorizontal ? col + i : col;
+                        int cellRow = isHorizontal ? row : row + i;
+                        InvalidateCell(cellRow, cellCol, playerBoardOffsetX, playerBoardOffsetY);
+                    }
                     SendMessageToServer($"PlaceShip,{row},{col},{shipSize},{isHorizontal}");
                 }
             }
-            else if (boardX >= 420 && boardX < 420 + 10 * 30 && boardY >= 200 && boardY < 200 + 10 * 30)
+            // Right side (opponent board) is used for attacking
+            else if (boardX >= opponentBoardOffsetX && boardX < opponentBoardOffsetX + 10 * cellSize &&
+                     boardY >= opponentBoardOffsetY && boardY < opponentBoardOffsetY + 10 * cellSize)
             {
-                row = (boardY - 200) / 30;
-                col = (boardX - 420) / 30;
+                row = (boardY - opponentBoardOffsetY) / cellSize;
+                col = (boardX - opponentBoardOffsetX) / cellSize;
 
                 if (rbAttack.Checked)
                 {
                     SendMessageToServer($"Attack,{row},{col}");
                 }
             }
-
-            this.Invalidate();
         }
 
         private void ProcessGameData(string message)
@@ -166,23 +184,37 @@ namespace LodeClient
                 switch (command)
                 {
                     case "PlaceShip":
+                        // No client processing needed for now.
                         break;
 
                     case "Attack":
+                        // Incoming attack on the player's board.
                         bool hit = playerBoard.CheckHit(row, col);
+                        if (hit)
+                        {
+                            playerBoard.MarkHit(row, col);
+                        }
+                        else
+                        {
+                            playerBoard.MarkMiss(row, col);
+                        }
+                        InvalidateCell(row, col, playerBoardOffsetX, playerBoardOffsetY);
+                        // Send a response to the server
                         string response = hit ? $"Hit,{row},{col}" : $"Miss,{row},{col}";
                         SendMessageToServer(response);
                         break;
 
                     case "Hit":
+                        // Response for an attack sent by the client; update opponent board.
                         opponentBoard.MarkHit(row, col);
+                        InvalidateCell(row, col, opponentBoardOffsetX, opponentBoardOffsetY);
                         break;
                     case "Miss":
                         opponentBoard.MarkMiss(row, col);
+                        InvalidateCell(row, col, opponentBoardOffsetX, opponentBoardOffsetY);
                         break;
                 }
             }
-            this.Invalidate();
         }
 
         private void CheckForResponse(object sender, EventArgs e)
@@ -204,6 +236,13 @@ namespace LodeClient
         {
             byte[] data = Encoding.Default.GetBytes(message);
             clientSocket.Send(data);
+        }
+
+        // Helper to invalidate a single cell in a given board region.
+        private void InvalidateCell(int row, int col, int offsetX, int offsetY)
+        {
+            Rectangle cellRect = new Rectangle(offsetX + col * cellSize, offsetY + row * cellSize, cellSize, cellSize);
+            this.Invalidate(cellRect);
         }
     }
 }
