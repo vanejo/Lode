@@ -19,9 +19,7 @@ namespace LodeServer
         Label labelData = new Label();
         Label labelPlayerBoard = new Label();
         Label labelOpponentBoard = new Label();
-        // Server's own board (holds server's ships)
         Gameboard playerBoard = new Gameboard();
-        // Displays results of server's attacks
         Gameboard opponentBoard = new Gameboard();
 
         private Image waterImage;
@@ -38,6 +36,8 @@ namespace LodeServer
         const int opponentBoardOffsetX = 420;
         const int opponentBoardOffsetY = 220;
 
+        private bool isMyTurn = true;
+
         public ServerForm()
         {
             InitializeComponent();
@@ -48,36 +48,30 @@ namespace LodeServer
         {
             this.Size = new Size(800, 600);
 
-            // Load images
             waterImage = Image.FromFile(@"..\..\water.png");
             shipImage = Image.FromFile(@"..\..\ship.png");
             hitImage = Image.FromFile(@"..\..\hit.png");
             missImage = Image.FromFile(@"..\..\miss.png");
 
-            // Status label
             labelStatus.Top = 20;
             labelStatus.Left = 20;
             Controls.Add(labelStatus);
 
-            // Data label
             labelData.Top = 50;
             labelData.Left = 20;
             Controls.Add(labelData);
 
-            // Place Ship radio button
             rbPlaceShip.Text = "Place Ship";
             rbPlaceShip.Top = 80;
             rbPlaceShip.Left = 20;
             rbPlaceShip.Checked = true;
             Controls.Add(rbPlaceShip);
 
-            // Attack radio button
             rbAttack.Text = "Attack";
             rbAttack.Top = 110;
             rbAttack.Left = 20;
             Controls.Add(rbAttack);
 
-            // Ship size numeric up-down
             nudShipSize.Minimum = 1;
             nudShipSize.Maximum = 5;
             nudShipSize.Value = 3;
@@ -85,26 +79,22 @@ namespace LodeServer
             nudShipSize.Left = 20;
             Controls.Add(nudShipSize);
 
-            // Orientation combobox
             cbOrientation.Items.AddRange(new string[] { "Horizontal", "Vertical" });
             cbOrientation.SelectedIndex = 0;
             cbOrientation.Top = 170;
             cbOrientation.Left = 20;
             Controls.Add(cbOrientation);
 
-            // Player board label
             labelPlayerBoard.Text = "Your Board";
             labelPlayerBoard.Left = 20;
             labelPlayerBoard.Top = 200;
             Controls.Add(labelPlayerBoard);
 
-            // Opponent board label
             labelOpponentBoard.Text = "Opponent's Board";
             labelOpponentBoard.Left = 420;
             labelOpponentBoard.Top = 200;
             Controls.Add(labelOpponentBoard);
 
-            // Socket setup
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             serverSocket.Bind(new IPEndPoint(IPAddress.Any, 5555));
             serverSocket.Listen(1);
@@ -125,10 +115,8 @@ namespace LodeServer
         {
             Graphics g = e.Graphics;
 
-            // Render server's board on the left
             playerBoard.RenderBoard(g, playerBoardOffsetX, playerBoardOffsetY, waterImage, shipImage, hitImage, missImage);
 
-            // Render opponent's board on the right
             opponentBoard.RenderBoard(g, opponentBoardOffsetX, opponentBoardOffsetY, waterImage, shipImage, hitImage, missImage);
         }
 
@@ -138,7 +126,6 @@ namespace LodeServer
             int boardY = e.Y;
             int row, col;
 
-            // Left side (server's board) for placing ships
             if (boardX >= playerBoardOffsetX && boardX < playerBoardOffsetX + 10 * cellSize &&
                 boardY >= playerBoardOffsetY && boardY < playerBoardOffsetY + 10 * cellSize)
             {
@@ -157,15 +144,20 @@ namespace LodeServer
                     }
                 }
             }
-            // Right side (opponent board) for attacking
             else if (boardX >= opponentBoardOffsetX && boardX < opponentBoardOffsetX + 10 * cellSize &&
                      boardY >= opponentBoardOffsetY && boardY < opponentBoardOffsetY + 10 * cellSize)
             {
+                if (!isMyTurn)
+                {
+                    MessageBox.Show("It is not your turn!");
+                    return;
+                }
                 row = (boardY - opponentBoardOffsetY) / cellSize;
                 col = (boardX - opponentBoardOffsetX) / cellSize;
                 if (rbAttack.Checked)
                 {
                     SendMessageToClient($"Attack,{row},{col}");
+                    isMyTurn = false;
                 }
             }
         }
@@ -199,7 +191,7 @@ namespace LodeServer
         private void ProcessGameData(string message)
         {
             string[] parts = message.Split(',');
-            if (parts.Length == 3)
+            if (parts.Length >= 3)
             {
                 string command = parts[0];
                 int row = int.Parse(parts[1]);
@@ -208,33 +200,41 @@ namespace LodeServer
                 switch (command)
                 {
                     case "PlaceShip":
-                        // No processing needed here.
                         break;
 
                     case "Attack":
-                        // Incoming attack on server's board.
-                        bool hit = playerBoard.CheckHit(row, col);
-                        if (hit)
+                        int result = playerBoard.ProcessAttack(row, col);
+                        if (result == 2)
                         {
-                            playerBoard.MarkHit(row, col);
+                            SendMessageToClient($"ShipDestroyed,{row},{col}");
+                            MessageBox.Show($"One of your ships has been destroyed at ({row},{col})!");
                         }
-                        else
+                        else if (result == 1)
                         {
-                            playerBoard.MarkMiss(row, col);
+                            SendMessageToClient($"Hit,{row},{col}");
                         }
+                        else if (result == 0)
+                        {
+                            SendMessageToClient($"Miss,{row},{col}");
+                        }
+                        isMyTurn = true;
                         InvalidateCell(row, col, playerBoardOffsetX, playerBoardOffsetY);
-                        string response = hit ? $"Hit,{row},{col}" : $"Miss,{row},{col}";
-                        SendMessageToClient(response);
                         break;
 
                     case "Hit":
-                        // Response for server's own attack; update opponent board.
                         opponentBoard.MarkHit(row, col);
                         InvalidateCell(row, col, opponentBoardOffsetX, opponentBoardOffsetY);
                         break;
+
                     case "Miss":
                         opponentBoard.MarkMiss(row, col);
                         InvalidateCell(row, col, opponentBoardOffsetX, opponentBoardOffsetY);
+                        break;
+
+                    case "ShipDestroyed":
+                        opponentBoard.MarkHit(row, col);
+                        InvalidateCell(row, col, opponentBoardOffsetX, opponentBoardOffsetY);
+                        MessageBox.Show($"You destroyed an enemy ship at ({row},{col})!");
                         break;
                 }
             }
@@ -246,7 +246,6 @@ namespace LodeServer
             clientSocket.Send(responseBytes);
         }
 
-        // Helper to invalidate a single cell in a given board region.
         private void InvalidateCell(int row, int col, int offsetX, int offsetY)
         {
             Rectangle cellRect = new Rectangle(offsetX + col * cellSize, offsetY + row * cellSize, cellSize, cellSize);
