@@ -23,6 +23,12 @@ namespace LodeClient
         private Image hitImage;
         private Image missImage;
 
+        private TextBox tbIPAddress = new TextBox();
+        private TextBox tbPort = new TextBox();
+        private Button btnConnect = new Button();
+        private Label labelIPAddress = new Label();
+        private Label labelPort = new Label();
+
         private NumericUpDown nudShipSize = new NumericUpDown();
         private ComboBox cbOrientation = new ComboBox();
 
@@ -88,7 +94,33 @@ namespace LodeClient
             labelOpponentBoard.Top = 170;
             Controls.Add(labelOpponentBoard);
 
-            clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            labelIPAddress.Text = "IP Address:";
+            labelIPAddress.Left = 150;
+            labelIPAddress.Top = 50;
+            Controls.Add(labelIPAddress);
+
+            tbIPAddress.Left = 150;
+            tbIPAddress.Top = 70;
+            tbIPAddress.Width = 150;
+            Controls.Add(tbIPAddress);
+
+            labelPort.Text = "Port:";
+            labelPort.Left = 150;
+            labelPort.Top = 100;
+            Controls.Add(labelPort);
+
+            tbPort.Left = 150;
+            tbPort.Top = 120;
+            tbPort.Width = 60;
+            Controls.Add(tbPort);
+
+            btnConnect.Text = "Connect";
+            btnConnect.Left = 150;
+            btnConnect.Top = 150;
+            btnConnect.Click += BtnConnect_Click;
+            Controls.Add(btnConnect);
+
+            /*clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
             {
                 clientSocket.Connect("127.0.0.1", 5555);
@@ -97,7 +129,7 @@ namespace LodeClient
             {
                 MessageBox.Show("Connection failed: " + ex.Message);
                 return;
-            }
+            }*/
 
             this.Paint += new PaintEventHandler(Klient_Form_Paint);
             this.MouseClick += new MouseEventHandler(Klient_Form_MouseClick);
@@ -115,6 +147,28 @@ namespace LodeClient
             playerBoard.RenderBoard(g, playerBoardOffsetX, playerBoardOffsetY, waterImage, shipImage, hitImage, missImage);
 
             opponentBoard.RenderBoard(g, opponentBoardOffsetX, opponentBoardOffsetY, waterImage, shipImage, hitImage, missImage);
+        }
+
+        private void BtnConnect_Click(object sender, EventArgs e)
+        {
+            string ipAddress = tbIPAddress.Text;
+            int port;
+            if (!int.TryParse(tbPort.Text, out port))
+            {
+                MessageBox.Show("Invalid port number");
+                return;
+            }
+
+            clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            try
+            {
+                clientSocket.Connect(ipAddress, port);
+                MessageBox.Show("Connected successfully");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Connection failed: " + ex.Message);
+            }
         }
 
         private void Klient_Form_MouseClick(object sender, MouseEventArgs e)
@@ -164,6 +218,10 @@ namespace LodeClient
 
         private void CheckForResponse(object sender, EventArgs e)
         {
+            // Return if clientSocket is not set or not connected
+            if (clientSocket == null || !clientSocket.Connected)
+                return;
+
             if (clientSocket.Available > 0)
             {
                 byte[] data = new byte[clientSocket.ReceiveBufferSize];

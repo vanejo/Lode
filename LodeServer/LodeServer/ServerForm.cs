@@ -87,12 +87,12 @@ namespace LodeServer
 
             labelPlayerBoard.Text = "Your Board";
             labelPlayerBoard.Left = 20;
-            labelPlayerBoard.Top = 200;
+            labelPlayerBoard.Top = 195;
             Controls.Add(labelPlayerBoard);
 
             labelOpponentBoard.Text = "Opponent's Board";
             labelOpponentBoard.Left = 420;
-            labelOpponentBoard.Top = 200;
+            labelOpponentBoard.Top = 195;
             Controls.Add(labelOpponentBoard);
 
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
