@@ -7,3 +7,4 @@ C:\Spst\Lode\Lode\Lode\obj\Debug\Lode.csproj.GenerateResource.cache
 C:\Spst\Lode\Lode\Lode\obj\Debug\Lode.csproj.CoreCompileInputs.cache
 C:\Spst\Lode\Lode\Lode\obj\Debug\Lode.exe
 C:\Spst\Lode\Lode\Lode\obj\Debug\Lode.pdb
+C:\Spst\Lode\Lode\Lode\obj\Debug\LodeClient.Klient_Form.resources

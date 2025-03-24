@@ -32,10 +32,16 @@ namespace LodeClient
         private NumericUpDown nudShipSize = new NumericUpDown();
         private ComboBox cbOrientation = new ComboBox();
 
-        const int cellSize = 30;
+        // We'll keep the cell size as before (for example 15),
+        // but adjust the board offsets for more space
+        const int cellSize = 15;
+
+        // Since we have a 50x50 board now, let's make the form bigger and
+        // give more space between player and opponent boards
         const int playerBoardOffsetX = 20;
         const int playerBoardOffsetY = 200;
-        const int opponentBoardOffsetX = 420;
+        // Increase distance between boards
+        const int opponentBoardOffsetX = 900;
         const int opponentBoardOffsetY = 200;
 
         private bool isMyTurn = false;
@@ -48,8 +54,10 @@ namespace LodeClient
 
         private void InitializeGameComponents()
         {
-            this.Size = new Size(800, 600);
+            // Make the form bigger
+            this.Size = new Size(1700, 1300);
 
+            // Load images (adjust paths as needed)
             waterImage = Image.FromFile(@"..\..\water.png");
             shipImage = Image.FromFile(@"..\..\ship.png");
             hitImage = Image.FromFile(@"..\..\hit.png");
@@ -90,7 +98,7 @@ namespace LodeClient
             Controls.Add(labelPlayerBoard);
 
             labelOpponentBoard.Text = "Opponent's Board";
-            labelOpponentBoard.Left = 420;
+            labelOpponentBoard.Left = opponentBoardOffsetX;
             labelOpponentBoard.Top = 170;
             Controls.Add(labelOpponentBoard);
 
@@ -120,17 +128,6 @@ namespace LodeClient
             btnConnect.Click += BtnConnect_Click;
             Controls.Add(btnConnect);
 
-            /*clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            try
-            {
-                clientSocket.Connect("127.0.0.1", 5555);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Connection failed: " + ex.Message);
-                return;
-            }*/
-
             this.Paint += new PaintEventHandler(Klient_Form_Paint);
             this.MouseClick += new MouseEventHandler(Klient_Form_MouseClick);
 
@@ -144,16 +141,35 @@ namespace LodeClient
         {
             Graphics g = e.Graphics;
 
-            playerBoard.RenderBoard(g, playerBoardOffsetX, playerBoardOffsetY, waterImage, shipImage, hitImage, missImage);
+            // Render the player's board
+            playerBoard.RenderBoard(
+                g,
+                playerBoardOffsetX,
+                playerBoardOffsetY,
+                waterImage,
+                shipImage,
+                hitImage,
+                missImage,
+                cellSize
+            );
 
-            opponentBoard.RenderBoard(g, opponentBoardOffsetX, opponentBoardOffsetY, waterImage, shipImage, hitImage, missImage);
+            // Render the opponent's board (now placed further away)
+            opponentBoard.RenderBoard(
+                g,
+                opponentBoardOffsetX,
+                opponentBoardOffsetY,
+                waterImage,
+                shipImage,
+                hitImage,
+                missImage,
+                cellSize
+            );
         }
 
         private void BtnConnect_Click(object sender, EventArgs e)
         {
             string ipAddress = tbIPAddress.Text;
-            int port;
-            if (!int.TryParse(tbPort.Text, out port))
+            if (!int.TryParse(tbPort.Text, out int port))
             {
                 MessageBox.Show("Invalid port number");
                 return;
@@ -177,8 +193,9 @@ namespace LodeClient
             int boardY = e.Y;
             int row, col;
 
-            if (boardX >= playerBoardOffsetX && boardX < playerBoardOffsetX + 10 * cellSize &&
-                boardY >= playerBoardOffsetY && boardY < playerBoardOffsetY + 10 * cellSize)
+            // 50x50 board, each cell is cellSize
+            if (boardX >= playerBoardOffsetX && boardX < playerBoardOffsetX + 50 * cellSize &&
+                boardY >= playerBoardOffsetY && boardY < playerBoardOffsetY + 50 * cellSize)
             {
                 row = (boardY - playerBoardOffsetY) / cellSize;
                 col = (boardX - playerBoardOffsetX) / cellSize;
@@ -186,8 +203,9 @@ namespace LodeClient
                 if (rbPlaceShip.Checked)
                 {
                     int shipSize = (int)nudShipSize.Value;
-                    bool isHorizontal = cbOrientation.SelectedItem.ToString() == "Horizontal";
+                    bool isHorizontal = (cbOrientation.SelectedItem?.ToString() == "Horizontal");
                     playerBoard.PlaceShip(row, col, shipSize, isHorizontal);
+
                     for (int i = 0; i < shipSize; i++)
                     {
                         int cellCol = isHorizontal ? col + i : col;
@@ -197,8 +215,8 @@ namespace LodeClient
                     SendMessageToServer($"PlaceShip,{row},{col},{shipSize},{isHorizontal}");
                 }
             }
-            else if (boardX >= opponentBoardOffsetX && boardX < opponentBoardOffsetX + 10 * cellSize &&
-                     boardY >= opponentBoardOffsetY && boardY < opponentBoardOffsetY + 10 * cellSize)
+            else if (boardX >= opponentBoardOffsetX && boardX < opponentBoardOffsetX + 50 * cellSize &&
+                     boardY >= opponentBoardOffsetY && boardY < opponentBoardOffsetY + 50 * cellSize)
             {
                 if (!isMyTurn)
                 {
@@ -218,7 +236,6 @@ namespace LodeClient
 
         private void CheckForResponse(object sender, EventArgs e)
         {
-            // Return if clientSocket is not set or not connected
             if (clientSocket == null || !clientSocket.Connected)
                 return;
 
@@ -260,7 +277,7 @@ namespace LodeClient
                         {
                             SendMessageToServer($"Hit,{row},{col}");
                         }
-                        else if (result == 0)
+                        else
                         {
                             SendMessageToServer($"Miss,{row},{col}");
                         }
@@ -295,7 +312,12 @@ namespace LodeClient
 
         private void InvalidateCell(int row, int col, int offsetX, int offsetY)
         {
-            Rectangle cellRect = new Rectangle(offsetX + col * cellSize, offsetY + row * cellSize, cellSize, cellSize);
+            Rectangle cellRect = new Rectangle(
+                offsetX + col * cellSize,
+                offsetY + row * cellSize,
+                cellSize,
+                cellSize
+            );
             this.Invalidate(cellRect);
         }
     }

@@ -30,10 +30,14 @@ namespace LodeServer
         private NumericUpDown nudShipSize = new NumericUpDown();
         private ComboBox cbOrientation = new ComboBox();
 
-        const int cellSize = 30;
+        // Same cell size, 15
+        const int cellSize = 15;
+
+        // 50x50 board => bigger offsets
         const int playerBoardOffsetX = 20;
         const int playerBoardOffsetY = 220;
-        const int opponentBoardOffsetX = 420;
+        // Move opponent board further away
+        const int opponentBoardOffsetX = 900;
         const int opponentBoardOffsetY = 220;
 
         private bool isMyTurn = true;
@@ -46,8 +50,10 @@ namespace LodeServer
 
         private void InitializeServerComponents()
         {
-            this.Size = new Size(800, 600);
+            // Make the form larger
+            this.Size = new Size(1300, 1600);
 
+            // Load images (adjust paths as necessary)
             waterImage = Image.FromFile(@"..\..\water.png");
             shipImage = Image.FromFile(@"..\..\ship.png");
             hitImage = Image.FromFile(@"..\..\hit.png");
@@ -91,7 +97,7 @@ namespace LodeServer
             Controls.Add(labelPlayerBoard);
 
             labelOpponentBoard.Text = "Opponent's Board";
-            labelOpponentBoard.Left = 420;
+            labelOpponentBoard.Left = opponentBoardOffsetX;
             labelOpponentBoard.Top = 195;
             Controls.Add(labelOpponentBoard);
 
@@ -114,10 +120,28 @@ namespace LodeServer
         private void ServerForm_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-
-            playerBoard.RenderBoard(g, playerBoardOffsetX, playerBoardOffsetY, waterImage, shipImage, hitImage, missImage);
-
-            opponentBoard.RenderBoard(g, opponentBoardOffsetX, opponentBoardOffsetY, waterImage, shipImage, hitImage, missImage);
+            // Render player's board
+            playerBoard.RenderBoard(
+                g,
+                playerBoardOffsetX,
+                playerBoardOffsetY,
+                waterImage,
+                shipImage,
+                hitImage,
+                missImage,
+                cellSize
+            );
+            // Render opponent's board (now placed further away)
+            opponentBoard.RenderBoard(
+                g,
+                opponentBoardOffsetX,
+                opponentBoardOffsetY,
+                waterImage,
+                shipImage,
+                hitImage,
+                missImage,
+                cellSize
+            );
         }
 
         private void ServerForm_MouseClick(object sender, MouseEventArgs e)
@@ -126,16 +150,17 @@ namespace LodeServer
             int boardY = e.Y;
             int row, col;
 
-            if (boardX >= playerBoardOffsetX && boardX < playerBoardOffsetX + 10 * cellSize &&
-                boardY >= playerBoardOffsetY && boardY < playerBoardOffsetY + 10 * cellSize)
+            if (boardX >= playerBoardOffsetX && boardX < playerBoardOffsetX + 50 * cellSize &&
+                boardY >= playerBoardOffsetY && boardY < playerBoardOffsetY + 50 * cellSize)
             {
                 row = (boardY - playerBoardOffsetY) / cellSize;
                 col = (boardX - playerBoardOffsetX) / cellSize;
                 if (rbPlaceShip.Checked)
                 {
                     int shipSize = (int)nudShipSize.Value;
-                    bool isHorizontal = cbOrientation.SelectedItem.ToString() == "Horizontal";
+                    bool isHorizontal = cbOrientation.SelectedItem?.ToString() == "Horizontal";
                     playerBoard.PlaceShip(row, col, shipSize, isHorizontal);
+
                     for (int i = 0; i < shipSize; i++)
                     {
                         int cellCol = isHorizontal ? col + i : col;
@@ -144,8 +169,8 @@ namespace LodeServer
                     }
                 }
             }
-            else if (boardX >= opponentBoardOffsetX && boardX < opponentBoardOffsetX + 10 * cellSize &&
-                     boardY >= opponentBoardOffsetY && boardY < opponentBoardOffsetY + 10 * cellSize)
+            else if (boardX >= opponentBoardOffsetX && boardX < opponentBoardOffsetX + 50 * cellSize &&
+                     boardY >= opponentBoardOffsetY && boardY < opponentBoardOffsetY + 50 * cellSize)
             {
                 if (!isMyTurn)
                 {
@@ -213,7 +238,7 @@ namespace LodeServer
                         {
                             SendMessageToClient($"Hit,{row},{col}");
                         }
-                        else if (result == 0)
+                        else
                         {
                             SendMessageToClient($"Miss,{row},{col}");
                         }
@@ -248,7 +273,12 @@ namespace LodeServer
 
         private void InvalidateCell(int row, int col, int offsetX, int offsetY)
         {
-            Rectangle cellRect = new Rectangle(offsetX + col * cellSize, offsetY + row * cellSize, cellSize, cellSize);
+            Rectangle cellRect = new Rectangle(
+                offsetX + col * cellSize,
+                offsetY + row * cellSize,
+                cellSize,
+                cellSize
+            );
             this.Invalidate(cellRect);
         }
     }

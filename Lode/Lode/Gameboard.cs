@@ -6,7 +6,7 @@ namespace Lode
 {
     internal class Gameboard
     {
-        private const int GridSize = 10;
+        private const int GridSize = 50;
         private int[,] board;
         private List<Ship> ships;
 
@@ -45,11 +45,7 @@ namespace Lode
 
         public bool CheckHit(int row, int col)
         {
-            if (board[row, col] == 1)
-            {
-                return true;
-            }
-            return false;
+            return (board[row, col] == 1);
         }
 
         public int ProcessAttack(int row, int col)
@@ -81,6 +77,7 @@ namespace Lode
                 board[row, col] = 3;
                 return 0;
             }
+
             return 0;
         }
 
@@ -94,28 +91,55 @@ namespace Lode
             board[row, col] = 3;
         }
 
-        public void RenderBoard(Graphics g, int offsetX, int offsetY, Image waterImage, Image shipImage, Image hitImage, Image missImage)
+        // We keep the same method signature, but ignore the image parameters
+        // and draw rectangles with color instead of images.
+        public void RenderBoard(
+            Graphics g,
+            int offsetX,
+            int offsetY,
+            Image waterImage,
+            Image shipImage,
+            Image hitImage,
+            Image missImage,
+            int cellSize)
         {
             for (int row = 0; row < GridSize; row++)
             {
                 for (int col = 0; col < GridSize; col++)
                 {
-                    Image cellImage = waterImage; 
+                    Color cellColor = Color.Blue;  // default is water
                     if (board[row, col] == 1)
                     {
-                        cellImage = shipImage;
+                        cellColor = Color.Green;    // ship
                     }
                     else if (board[row, col] == 2)
                     {
-                        cellImage = hitImage;
+                        cellColor = Color.Red;      // hit
                     }
                     else if (board[row, col] == 3)
                     {
-                        cellImage = missImage;
+                        cellColor = Color.Gray;     // miss
                     }
 
-                    g.DrawImage(cellImage, offsetX + col * 30, offsetY + row * 30, 30, 30);
-                    g.DrawRectangle(Pens.Black, offsetX + col * 30, offsetY + row * 30, 30, 30);
+                    using (SolidBrush brush = new SolidBrush(cellColor))
+                    {
+                        g.FillRectangle(
+                            brush,
+                            offsetX + col * cellSize,
+                            offsetY + row * cellSize,
+                            cellSize,
+                            cellSize
+                        );
+                    }
+
+                    // Black border
+                    g.DrawRectangle(
+                        Pens.Black,
+                        offsetX + col * cellSize,
+                        offsetY + row * cellSize,
+                        cellSize,
+                        cellSize
+                    );
                 }
             }
         }
@@ -131,7 +155,6 @@ namespace Lode
                 hits = new HashSet<Point>();
             }
 
-            // Checks whether the ship occupies the given cell.
             public bool ContainsCell(int row, int col)
             {
                 foreach (Point p in cells)
@@ -144,18 +167,14 @@ namespace Lode
                 return false;
             }
 
-            // Registers a hit on the ship for the given cell.
             public void RegisterHit(int row, int col)
             {
-                Point hitPoint = new Point(row, col);
-                // Add the hit if it's part of the ship.
                 if (ContainsCell(row, col))
                 {
-                    hits.Add(hitPoint);
+                    hits.Add(new Point(row, col));
                 }
             }
 
-            // Checks if all cells of the ship have been hit.
             public bool IsSunk()
             {
                 return hits.Count == cells.Count;
