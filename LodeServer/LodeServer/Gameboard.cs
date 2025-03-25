@@ -91,8 +91,6 @@ namespace Lode
             board[row, col] = 3;
         }
 
-        // We keep the same method signature, but ignore the image parameters
-        // and draw rectangles with color instead of images.
         public void RenderBoard(
             Graphics g,
             int offsetX,
@@ -107,7 +105,7 @@ namespace Lode
             {
                 for (int col = 0; col < GridSize; col++)
                 {
-                    Color cellColor = Color.Blue;  // default is water
+                    Color cellColor = Color.Blue;  // default water
                     if (board[row, col] == 1)
                     {
                         cellColor = Color.Green;    // ship
@@ -132,7 +130,6 @@ namespace Lode
                         );
                     }
 
-                    // Black border
                     g.DrawRectangle(
                         Pens.Black,
                         offsetX + col * cellSize,

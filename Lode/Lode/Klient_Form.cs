@@ -32,15 +32,10 @@ namespace LodeClient
         private NumericUpDown nudShipSize = new NumericUpDown();
         private ComboBox cbOrientation = new ComboBox();
 
-        // We'll keep the cell size as before (for example 15),
-        // but adjust the board offsets for more space
         const int cellSize = 15;
 
-        // Since we have a 50x50 board now, let's make the form bigger and
-        // give more space between player and opponent boards
         const int playerBoardOffsetX = 20;
         const int playerBoardOffsetY = 200;
-        // Increase distance between boards
         const int opponentBoardOffsetX = 900;
         const int opponentBoardOffsetY = 200;
 
@@ -54,10 +49,8 @@ namespace LodeClient
 
         private void InitializeGameComponents()
         {
-            // Make the form bigger
             this.Size = new Size(1700, 1300);
 
-            // Load images (adjust paths as needed)
             waterImage = Image.FromFile(@"..\..\water.png");
             shipImage = Image.FromFile(@"..\..\ship.png");
             hitImage = Image.FromFile(@"..\..\hit.png");
@@ -141,7 +134,6 @@ namespace LodeClient
         {
             Graphics g = e.Graphics;
 
-            // Render the player's board
             playerBoard.RenderBoard(
                 g,
                 playerBoardOffsetX,
@@ -153,7 +145,6 @@ namespace LodeClient
                 cellSize
             );
 
-            // Render the opponent's board (now placed further away)
             opponentBoard.RenderBoard(
                 g,
                 opponentBoardOffsetX,
@@ -193,7 +184,6 @@ namespace LodeClient
             int boardY = e.Y;
             int row, col;
 
-            // 50x50 board, each cell is cellSize
             if (boardX >= playerBoardOffsetX && boardX < playerBoardOffsetX + 50 * cellSize &&
                 boardY >= playerBoardOffsetY && boardY < playerBoardOffsetY + 50 * cellSize)
             {

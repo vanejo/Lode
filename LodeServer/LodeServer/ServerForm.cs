@@ -30,13 +30,11 @@ namespace LodeServer
         private NumericUpDown nudShipSize = new NumericUpDown();
         private ComboBox cbOrientation = new ComboBox();
 
-        // Same cell size, 15
         const int cellSize = 15;
 
-        // 50x50 board => bigger offsets
         const int playerBoardOffsetX = 20;
         const int playerBoardOffsetY = 220;
-        // Move opponent board further away
+
         const int opponentBoardOffsetX = 900;
         const int opponentBoardOffsetY = 220;
 
@@ -50,10 +48,8 @@ namespace LodeServer
 
         private void InitializeServerComponents()
         {
-            // Make the form larger
-            this.Size = new Size(1300, 1600);
+            this.Size = new Size(1700, 1300);
 
-            // Load images (adjust paths as necessary)
             waterImage = Image.FromFile(@"..\..\water.png");
             shipImage = Image.FromFile(@"..\..\ship.png");
             hitImage = Image.FromFile(@"..\..\hit.png");
