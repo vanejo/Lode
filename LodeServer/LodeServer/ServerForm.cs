@@ -22,11 +22,6 @@ namespace LodeServer
         Gameboard playerBoard = new Gameboard();
         Gameboard opponentBoard = new Gameboard();
 
-        private Image waterImage;
-        private Image shipImage;
-        private Image hitImage;
-        private Image missImage;
-
         private NumericUpDown nudShipSize = new NumericUpDown();
         private ComboBox cbOrientation = new ComboBox();
 
@@ -49,11 +44,6 @@ namespace LodeServer
         private void InitializeServerComponents()
         {
             this.Size = new Size(1700, 1300);
-
-            waterImage = Image.FromFile(@"..\..\water.png");
-            shipImage = Image.FromFile(@"..\..\ship.png");
-            hitImage = Image.FromFile(@"..\..\hit.png");
-            missImage = Image.FromFile(@"..\..\miss.png");
 
             labelStatus.Top = 20;
             labelStatus.Left = 20;
@@ -121,10 +111,6 @@ namespace LodeServer
                 g,
                 playerBoardOffsetX,
                 playerBoardOffsetY,
-                waterImage,
-                shipImage,
-                hitImage,
-                missImage,
                 cellSize
             );
             // Render opponent's board (now placed further away)
@@ -132,10 +118,6 @@ namespace LodeServer
                 g,
                 opponentBoardOffsetX,
                 opponentBoardOffsetY,
-                waterImage,
-                shipImage,
-                hitImage,
-                missImage,
                 cellSize
             );
         }

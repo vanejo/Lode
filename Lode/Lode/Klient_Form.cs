@@ -18,11 +18,6 @@ namespace LodeClient
         Gameboard playerBoard = new Gameboard();
         Gameboard opponentBoard = new Gameboard();
 
-        private Image waterImage;
-        private Image shipImage;
-        private Image hitImage;
-        private Image missImage;
-
         private TextBox tbIPAddress = new TextBox();
         private TextBox tbPort = new TextBox();
         private Button btnConnect = new Button();
@@ -50,11 +45,6 @@ namespace LodeClient
         private void InitializeGameComponents()
         {
             this.Size = new Size(1700, 1300);
-
-            waterImage = Image.FromFile(@"..\..\water.png");
-            shipImage = Image.FromFile(@"..\..\ship.png");
-            hitImage = Image.FromFile(@"..\..\hit.png");
-            missImage = Image.FromFile(@"..\..\miss.png");
 
             labelResponse.Left = 20;
             labelResponse.Top = 20;
@@ -138,10 +128,6 @@ namespace LodeClient
                 g,
                 playerBoardOffsetX,
                 playerBoardOffsetY,
-                waterImage,
-                shipImage,
-                hitImage,
-                missImage,
                 cellSize
             );
 
@@ -149,10 +135,6 @@ namespace LodeClient
                 g,
                 opponentBoardOffsetX,
                 opponentBoardOffsetY,
-                waterImage,
-                shipImage,
-                hitImage,
-                missImage,
                 cellSize
             );
         }

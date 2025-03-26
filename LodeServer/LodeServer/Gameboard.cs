@@ -95,10 +95,6 @@ namespace Lode
             Graphics g,
             int offsetX,
             int offsetY,
-            Image waterImage,
-            Image shipImage,
-            Image hitImage,
-            Image missImage,
             int cellSize)
         {
             for (int row = 0; row < GridSize; row++)
