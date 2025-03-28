@@ -20,7 +20,7 @@ namespace Lode
 
         public void PlaceShip(int row, int col, int shipSize, bool isHorizontal)
         {
-            if (ShipCount >= 10 || ShipCount < 1)
+            if (ShipCount >= 10)
             {
                 return;
             }

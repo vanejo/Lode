@@ -1,7 +1,10 @@
 zdroje rop
 https://learn.microsoft.com/cs-cz/dotnet/api/system.drawing.graphics?view=windowsdesktop-9.0
+https://visualstudio.microsoft.com/cs/vs/
+https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/sockets/tcp-classes
+https://learn.microsoft.com/cs-cz/dotnet/csharp/fundamentals/program-structure/
 https://www.militarytimes.com/off-duty/military-culture/2023/11/29/where-the-battleship-board-game-originated/
-https://en.wikipedia.org/wiki/Battleship_(game)
+https://www.gamesver.com/how-to-win-at-battleship-tips-tricks-strategies-boost-your-win-rate/
 
 
 obrazky

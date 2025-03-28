@@ -1,0 +1,7 @@
+Návod Lodě
+
+1. zapnout server a klient
+2. do klienta zadat IP adresu serveru a port 5555 (pro jiný port je v kódu serveru potřeba změnit na jakém portu poslouchá)
+3. rozložit lodě
+4. začít hrát - přepnout radiobutton na Attack a klikat na políčka na oponentově herní ploše pro střelbu
+5. cíl zničit všechny protivníkovi lodě
