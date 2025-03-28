@@ -106,14 +106,12 @@ namespace LodeServer
         private void ServerForm_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            // Render player's board
             playerBoard.RenderBoard(
                 g,
                 playerBoardOffsetX,
                 playerBoardOffsetY,
                 cellSize
             );
-            // Render opponent's board (now placed further away)
             opponentBoard.RenderBoard(
                 g,
                 opponentBoardOffsetX,
@@ -135,6 +133,12 @@ namespace LodeServer
                 col = (boardX - playerBoardOffsetX) / cellSize;
                 if (rbPlaceShip.Checked)
                 {
+                    if (playerBoard.ShipCount >= 10)
+                    {
+                        MessageBox.Show("Please place only between 1 and 10 ships.");
+                        return;
+                    }
+
                     int shipSize = (int)nudShipSize.Value;
                     bool isHorizontal = cbOrientation.SelectedItem?.ToString() == "Horizontal";
                     playerBoard.PlaceShip(row, col, shipSize, isHorizontal);
@@ -210,7 +214,8 @@ namespace LodeServer
                         if (result == 2)
                         {
                             SendMessageToClient($"ShipDestroyed,{row},{col}");
-                            MessageBox.Show($"One of your ships has been destroyed at ({row},{col})!");
+                            MessageBox.Show($"One of your ships has been destroyed at ({row + 1},{col + 1})!");
+                            CheckWinOrLose();
                         }
                         else if (result == 1)
                         {
@@ -237,10 +242,39 @@ namespace LodeServer
                     case "ShipDestroyed":
                         opponentBoard.MarkHit(row, col);
                         InvalidateCell(row, col, opponentBoardOffsetX, opponentBoardOffsetY);
-                        MessageBox.Show($"You destroyed an enemy ship at ({row},{col})!");
+                        MessageBox.Show($"You destroyed an enemy ship at ({row + 1},{col + 1})!");
+                        CheckWinOrLose();
                         break;
                 }
             }
+        }
+
+       
+        private void CheckWinOrLose()
+        {
+            int mySunkCount = playerBoard.GetSunkShipsCount();
+            int opponentSunkCount = opponentBoard.GetSunkShipsCount();
+         
+            if (mySunkCount == 10)
+            {
+                MessageBox.Show("You Lost! All your ships are destroyed.");
+                ResetBoards();
+                return;
+            }
+          
+            if (opponentSunkCount == 10)
+            {
+                MessageBox.Show("You Won! You destroyed all opponent ships.");
+                ResetBoards();
+                return;
+            }
+        }
+
+        private void ResetBoards()
+        {
+            playerBoard.ResetBoard();
+            opponentBoard.ResetBoard();
+            this.Invalidate();
         }
 
         private void SendMessageToClient(string message)

@@ -16,8 +16,15 @@ namespace Lode
             ships = new List<Ship>();
         }
 
+        public int ShipCount => ships.Count;
+
         public void PlaceShip(int row, int col, int shipSize, bool isHorizontal)
         {
+            if (ShipCount >= 10 || ShipCount < 1)
+            {
+                return;
+            }
+
             List<Point> shipCells = new List<Point>();
 
             for (int i = 0; i < shipSize; i++)
@@ -41,6 +48,16 @@ namespace Lode
             }
 
             ships.Add(new Ship(shipCells));
+        }
+
+        public int GetSunkShipsCount()
+        {
+            int sunkCount = 0;
+            foreach (Ship ship in ships)
+            {
+                if (ship.IsSunk()) sunkCount++;
+            }
+            return sunkCount;
         }
 
         public bool CheckHit(int row, int col)
@@ -92,7 +109,7 @@ namespace Lode
         }
 
         public void RenderBoard(
-            Graphics g,
+            System.Drawing.Graphics g,
             int offsetX,
             int offsetY,
             int cellSize)
@@ -135,6 +152,12 @@ namespace Lode
                     );
                 }
             }
+        }
+
+        public void ResetBoard()
+        {
+            board = new int[GridSize, GridSize];
+            ships.Clear();
         }
 
         private class Ship
